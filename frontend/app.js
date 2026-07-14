@@ -5,7 +5,7 @@ const sitesContainer = document.getElementById('sites-container');
 const currencySelect = document.getElementById('currency-select');
 const globalStats = document.getElementById('global-stats');
 
-const API_BASE = "http://127.0.0.1:8000"; // Can be changed to Render URL later
+const API_BASE = "https://ch4-biofuel-sites.onrender.com"; // Render Production URL
 
 scanBtn.addEventListener('click', async () => {
     // UI Loading State
