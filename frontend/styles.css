@@ -47,7 +47,7 @@ body {
     box-shadow: var(--shadow-md);
     display: flex;
     flex-direction: column;
-    z-index: 10;
+    z-index: 1000; /* Above Leaflet */
 }
 
 .logo {
@@ -79,7 +79,43 @@ body {
     font-size: 0.9rem;
     color: var(--text-secondary);
     line-height: 1.5;
+    margin-bottom: 2rem;
+}
+
+/* Sidebar Nav */
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
     margin-bottom: 2.5rem;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 0.95rem;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.nav-link:hover {
+    background-color: var(--light-green);
+    color: var(--dark-green);
+}
+
+.nav-link.active {
+    background-color: var(--primary-green);
+    color: white;
+    box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);
+}
+
+.nav-icon {
+    font-size: 1.2rem;
 }
 
 .controls {
@@ -146,7 +182,6 @@ select:focus {
     transform: translateY(0);
 }
 
-/* Loader */
 .loader {
     width: 18px;
     height: 18px;
@@ -197,11 +232,31 @@ select:focus {
     box-shadow: 0 0 8px var(--primary-green);
 }
 
-/* Main Dashboard */
-.dashboard {
+/* Main Content Area */
+.main-content {
     flex: 1;
+    position: relative;
+    overflow: hidden; /* Contains the scrollable views */
+}
+
+/* Views Routing Logic */
+.view {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     padding: 2.5rem;
     overflow-y: auto;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease;
+}
+
+.view.active {
+    opacity: 1;
+    visibility: visible;
+    z-index: 10;
 }
 
 header {
@@ -216,6 +271,48 @@ header h2 {
     color: var(--dark-green);
 }
 
+.subtitle {
+    color: var(--text-secondary);
+    margin-top: 0.5rem;
+}
+
+/* Map Container */
+.map-container {
+    width: 100%;
+    height: calc(100vh - 140px);
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+#leaflet-map {
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+/* Leaflet Popup Styling */
+.leaflet-popup-content-wrapper {
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+}
+
+.leaflet-popup-content h3 {
+    color: var(--dark-green);
+    margin: 0 0 5px 0;
+}
+.leaflet-popup-content p {
+    margin: 0;
+    color: var(--text-secondary);
+}
+.leaflet-popup-content .roi {
+    color: var(--primary-green);
+    font-weight: 700;
+    font-size: 1.2rem;
+    margin-top: 10px;
+    display: block;
+}
+
+/* Dashboard Grid */
 .sites-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
@@ -235,7 +332,7 @@ header h2 {
     font-size: 1.1rem;
 }
 
-/* Glassmorphism Cards */
+/* Glassmorphism Classes */
 .glass {
     background: var(--card-bg);
     backdrop-filter: blur(12px);
@@ -247,12 +344,42 @@ header h2 {
     transition: transform 0.3s, box-shadow 0.3s;
 }
 
-.glass:hover {
+.site-card:hover {
     transform: translateY(-4px);
     box-shadow: var(--shadow-lg);
     border-color: rgba(16, 185, 129, 0.4);
 }
 
+.info-card {
+    max-width: 800px;
+    margin-bottom: 2rem;
+}
+
+.info-card h3 {
+    color: var(--dark-green);
+    margin-bottom: 1rem;
+}
+
+.info-card p, .info-card ul {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.info-card ul {
+    padding-left: 1.5rem;
+}
+
+.highlight-box {
+    background: var(--light-green);
+    border-left: 4px solid var(--primary-green);
+    padding: 1rem;
+    margin: 1.5rem 0;
+    color: var(--dark-green);
+    border-radius: 4px;
+}
+
+/* Card Internals */
 .card-header {
     display: flex;
     justify-content: space-between;
@@ -412,7 +539,6 @@ header h2 {
     transition: width 1s ease-out;
 }
 
-/* Error/Warning States */
 .error-state {
     color: #ef4444;
     font-size: 0.9rem;

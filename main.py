@@ -27,12 +27,24 @@ fleet = FleetManager()
 roi_calc = ROICalculator()
 
 @app.get("/api/analyze")
-def analyze_sites(currency: str = "EUR"):
+def analyze_sites(
+    currency: str = "EUR",
+    min_lat: float = 48.0,
+    max_lat: float = 54.0,
+    min_lon: float = 6.0,
+    max_lon: float = 14.0
+):
     """
-    Generates mock methane sites, ranks them, routes logistics, and calculates ROI.
+    Generates mock methane sites within a bounding box, ranks them, routes logistics, and calculates ROI.
     """
-    # 1. Generate & Score
-    raw_sites = generate_mock_sites(num_sites=10)
+    # 1. Generate & Score within bounds
+    raw_sites = generate_mock_sites(
+        num_sites=10, 
+        min_lat=min_lat, 
+        max_lat=max_lat, 
+        min_lon=min_lon, 
+        max_lon=max_lon
+    )
     ranked_sites = scorer.score_sites(raw_sites)
     
     results = []

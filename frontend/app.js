@@ -7,41 +7,80 @@ const globalStats = document.getElementById('global-stats');
 
 const API_BASE = "https://ch4-biofuel-sites.onrender.com"; // Render Production URL
 
-scanBtn.addEventListener('click', async () => {
-    // UI Loading State
-    loader.classList.remove('hidden');
-    btnText.textContent = "Scanning...";
-    scanBtn.disabled = true;
-    sitesContainer.innerHTML = '';
-    globalStats.innerHTML = '';
+// --- 1. View Navigation (Tabs) ---
+const navLinks = document.querySelectorAll('.nav-link');
+const views = document.querySelectorAll('.view');
+
+navLinks.forEach(link => {
+    link.addEventListener('click', (e) => {
+        e.preventDefault();
+        
+        // Remove active class from all links and views
+        navLinks.forEach(l => l.classList.remove('active'));
+        views.forEach(v => v.classList.remove('active'));
+        
+        // Add active class to clicked link and corresponding view
+        link.classList.add('active');
+        const targetId = link.getAttribute('data-target');
+        document.getElementById(targetId).classList.add('active');
+        
+        // Map requires invalidation if it was hidden during initialization
+        if (targetId === 'view-map' && map) {
+            setTimeout(() => map.invalidateSize(), 100);
+        }
+    });
+});
+
+// --- 2. Data Fetching & Dashboard ---
+async function fetchAndRenderData(currency, minLat = 48.0, maxLat = 54.0, minLon = 6.0, maxLon = 14.0, isMapUpdate = false) {
+    if (!isMapUpdate) {
+        loader.classList.remove('hidden');
+        btnText.textContent = "Scanning...";
+        scanBtn.disabled = true;
+        sitesContainer.innerHTML = '';
+        globalStats.innerHTML = '';
+    }
 
     try {
-        const currency = currencySelect.value;
-        const response = await fetch(`${API_BASE}/api/analyze?currency=${currency}`);
+        const url = `${API_BASE}/api/analyze?currency=${currency}&min_lat=${minLat}&max_lat=${maxLat}&min_lon=${minLon}&max_lon=${maxLon}`;
+        const response = await fetch(url);
         
         if (!response.ok) throw new Error("API request failed");
         
         const data = await response.json();
-        renderSites(data.sites);
+        
+        if (!isMapUpdate) {
+            renderSites(data.sites);
+        } else {
+            updateMapMarkers(data.sites);
+        }
         
     } catch (error) {
         console.error(error);
-        sitesContainer.innerHTML = `
-            <div class="empty-state" style="border-color: #ef4444; color: #ef4444;">
-                <p>⚠️ Failed to connect to Backend API. Make sure the FastAPI server is running.</p>
-            </div>
-        `;
+        if (!isMapUpdate) {
+            sitesContainer.innerHTML = `
+                <div class="empty-state" style="border-color: #ef4444; color: #ef4444;">
+                    <p>⚠️ Failed to connect to Backend API. Make sure the FastAPI server is running.</p>
+                </div>
+            `;
+        }
     } finally {
-        // Reset UI
-        loader.classList.add('hidden');
-        btnText.textContent = "Run Predictive Scan";
-        scanBtn.disabled = false;
+        if (!isMapUpdate) {
+            loader.classList.add('hidden');
+            btnText.textContent = "Run Predictive Scan";
+            scanBtn.disabled = false;
+        }
     }
+}
+
+scanBtn.addEventListener('click', () => {
+    const curr = currencySelect.value;
+    fetchAndRenderData(curr, 48.0, 54.0, 6.0, 14.0, false);
 });
 
 function renderSites(sites) {
     if (!sites || sites.length === 0) {
-        sitesContainer.innerHTML = `<div class="empty-state"><p>No viable sites found.</p></div>`;
+        sitesContainer.innerHTML = `<div class="empty-state"><p>No viable sites found in this region.</p></div>`;
         return;
     }
 
@@ -115,3 +154,84 @@ function renderSites(sites) {
         `;
     }
 }
+
+
+// --- 3. Live Interactive Leaflet Map ---
+let map;
+let markerLayer = L.layerGroup();
+
+function initMap() {
+    // Default focus on Germany/Europe
+    map = L.map('leaflet-map').setView([51.0, 10.0], 5);
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+        subdomains: 'abcd',
+        maxZoom: 20
+    }).addTo(map);
+
+    markerLayer.addTo(map);
+
+    // Event listener for map panning/zooming
+    map.on('moveend', () => {
+        const bounds = map.getBounds();
+        const minLat = bounds.getSouthWest().lat;
+        const maxLat = bounds.getNorthEast().lat;
+        const minLon = bounds.getSouthWest().lng;
+        const maxLon = bounds.getNorthEast().lng;
+        
+        const curr = currencySelect.value;
+        
+        // Fetch sites in the new bounding box (Silently)
+        fetchAndRenderData(curr, minLat, maxLat, minLon, maxLon, true);
+    });
+}
+
+function updateMapMarkers(sites) {
+    markerLayer.clearLayers();
+    
+    if (!sites) return;
+
+    sites.forEach(site => {
+        const isFeasible = site.logistics && site.logistics.feasible;
+        
+        // Create custom dot marker based on feasibility
+        const color = isFeasible ? '#10b981' : '#ef4444';
+        
+        const circleMarker = L.circleMarker([site.latitude, site.longitude], {
+            radius: 8,
+            fillColor: color,
+            color: '#ffffff',
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.8
+        });
+
+        let popupContent = `
+            <div style="font-family: 'Inter', sans-serif;">
+                <h3>${site.id}</h3>
+                <p>${site.type}</p>
+                <p><strong>Feasibility Score:</strong> ${Math.round(site.score)}/100</p>
+        `;
+
+        if (isFeasible) {
+            const sym = site.logistics.currency_symbol;
+            popupContent += `
+                <p><strong>Offtake Route:</strong> ${site.logistics.hub_distance_km.toFixed(1)}km to ${site.logistics.nearest_hub}</p>
+                <span class="roi">ROI: ${site.finance.roi_percentage.toFixed(0)}%</span>
+            `;
+        } else {
+            popupContent += `
+                <p style="color: #ef4444; margin-top: 10px;"><strong>Status:</strong> ${site.logistics.reason}</p>
+            `;
+        }
+
+        popupContent += `</div>`;
+        
+        circleMarker.bindPopup(popupContent);
+        markerLayer.addLayer(circleMarker);
+    });
+}
+
+// Initialize Map immediately
+initMap();

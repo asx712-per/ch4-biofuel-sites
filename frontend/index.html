@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Methane-to-Ethanol Platform</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -19,6 +21,21 @@
             <p class="description">
                 Real-time predictive pipeline for locating high-volume methane leaks and routing them for bio-ethanol refinement.
             </p>
+
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-link active" data-target="view-dashboard">
+                    <span class="nav-icon">📊</span> Dashboard
+                </a>
+                <a href="#" class="nav-link" data-target="view-map">
+                    <span class="nav-icon">🌍</span> Live Map
+                </a>
+                <a href="#" class="nav-link" data-target="view-logistics">
+                    <span class="nav-icon">🚚</span> Logistics & Fleet
+                </a>
+                <a href="#" class="nav-link" data-target="view-market">
+                    <span class="nav-icon">📈</span> Market Intel
+                </a>
+            </nav>
 
             <div class="controls">
                 <div class="control-group">
@@ -50,21 +67,66 @@
             </div>
         </aside>
 
-        <!-- Main Dashboard -->
-        <main class="dashboard">
-            <header>
-                <h2>Top Recommended Sites</h2>
-                <div class="header-stats" id="global-stats">
-                    <!-- Global stats injected here -->
-                </div>
-            </header>
+        <!-- Main Content Area -->
+        <main class="main-content">
+            
+            <!-- VIEW 1: DASHBOARD -->
+            <section id="view-dashboard" class="view active">
+                <header>
+                    <h2>Top Recommended Sites</h2>
+                    <div class="header-stats" id="global-stats">
+                        <!-- Global stats injected here -->
+                    </div>
+                </header>
 
-            <div class="sites-grid" id="sites-container">
-                <!-- Site Cards injected here via JS -->
-                <div class="empty-state">
-                    <p>Click "Run Predictive Scan" to locate and analyze methane sites.</p>
+                <div class="sites-grid" id="sites-container">
+                    <div class="empty-state">
+                        <p>Click "Run Predictive Scan" to locate and analyze methane sites.</p>
+                    </div>
                 </div>
-            </div>
+            </section>
+
+            <!-- VIEW 2: LIVE MAP -->
+            <section id="view-map" class="view">
+                <header>
+                    <h2>Live Geospatial Scan</h2>
+                    <p class="subtitle">Pan the map to automatically scan for high-viability methane emission sites in that bounding box.</p>
+                </header>
+                <div class="map-container glass">
+                    <div id="leaflet-map"></div>
+                </div>
+            </section>
+
+            <!-- VIEW 3: LOGISTICS -->
+            <section id="view-logistics" class="view">
+                <header>
+                    <h2>Supply Chain Constraints</h2>
+                </header>
+                <div class="glass info-card">
+                    <h3>Mobile Refinement Units (MRUs)</h3>
+                    <p>The platform relies on modular gas-to-liquids (GTL) plants that can be deployed directly to emission sites.</p>
+                    <ul>
+                        <li><strong>Max Offtake Distance:</strong> 300.0 km (beyond this, transport losses degrade ROI).</li>
+                        <li><strong>Base Transport Rate:</strong> Fluctuates based on live diesel indices (approx $0.12 USD / km / ton).</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- VIEW 4: MARKET INTEL -->
+            <section id="view-market" class="view">
+                <header>
+                    <h2>Market Intelligence Engine</h2>
+                </header>
+                <div class="glass info-card">
+                    <h3>Global Warming Potential (GWP) Multiplier</h3>
+                    <p>Methane (CH4) is a highly potent greenhouse gas. By capturing it and converting it into Ethanol, we destroy the methane, preventing it from entering the atmosphere.</p>
+                    <div class="highlight-box">
+                        <strong>1 Ton of Methane = ~28 Tons of CO2e (Carbon Dioxide Equivalent)</strong>
+                    </div>
+                    <p>This massive multiplier means the <strong>Carbon Credit Revenue</strong> generated by this platform vastly outpaces the raw value of the physical Ethanol produced.</p>
+                </div>
+            </section>
+
         </main>
     </div>
 
@@ -132,6 +194,8 @@
         </div>
     </template>
 
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="app.js"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 import random
 from typing import List, Dict, Any
 
-def generate_mock_sites(num_sites: int = 5) -> List[Dict[str, Any]]:
+def generate_mock_sites(num_sites: int = 5, min_lat: float = 48.0, max_lat: float = 54.0, min_lon: float = 6.0, max_lon: float = 14.0) -> List[Dict[str, Any]]:
     """
     Generates a list of synthetic methane emission sites with random raw 
     scores (0.0 to 1.0) for all 16 modifiers. 1.0 represents the ideal case.
@@ -22,8 +22,8 @@ def generate_mock_sites(num_sites: int = 5) -> List[Dict[str, Any]]:
         site = {
             "site_id": f"SITE-{i+1:03d}",
             "site_type": site_type,
-            "latitude": random.uniform(48.0, 54.0), # Roughly Germany/EU area
-            "longitude": random.uniform(6.0, 14.0),
+            "latitude": random.uniform(min_lat, max_lat),
+            "longitude": random.uniform(min_lon, max_lon),
             
             # Raw variables between 0.0 and 1.0 (1.0 = best possible condition)
             "zoning_regulatory": random.uniform(0.1, 1.0),
