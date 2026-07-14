@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Methane-to-Ethanol Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar / Control Panel -->
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-icon"></div>
+                <h1>CH4<span>Biofuel</span></h1>
+            </div>
+            
+            <p class="description">
+                Real-time predictive pipeline for locating high-volume methane leaks and routing them for bio-ethanol refinement.
+            </p>
+
+            <div class="controls">
+                <div class="control-group">
+                    <label for="currency-select">Currency</label>
+                    <select id="currency-select">
+                        <option value="EUR">Euros (EUR)</option>
+                        <option value="USD">US Dollars (USD)</option>
+                        <option value="CNY">Chinese Yuan (CNY)</option>
+                    </select>
+                </div>
+                
+                <button id="scan-btn" class="primary-btn">
+                    <span class="btn-text">Run Predictive Scan</span>
+                    <span class="loader hidden"></span>
+                </button>
+            </div>
+            
+            <div class="status-panel">
+                <h3>System Status</h3>
+                <div class="status-indicator">
+                    <span class="dot active"></span> API Connected
+                </div>
+                <div class="status-indicator">
+                    <span class="dot active"></span> Logistics Online
+                </div>
+                <div class="status-indicator">
+                    <span class="dot active"></span> Market Sync Active
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Dashboard -->
+        <main class="dashboard">
+            <header>
+                <h2>Top Recommended Sites</h2>
+                <div class="header-stats" id="global-stats">
+                    <!-- Global stats injected here -->
+                </div>
+            </header>
+
+            <div class="sites-grid" id="sites-container">
+                <!-- Site Cards injected here via JS -->
+                <div class="empty-state">
+                    <p>Click "Run Predictive Scan" to locate and analyze methane sites.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Template for a Site Card -->
+    <template id="site-card-template">
+        <div class="site-card glass">
+            <div class="card-header">
+                <div>
+                    <span class="badge rank-badge">Rank 1</span>
+                    <h3 class="site-id">SITE-001</h3>
+                </div>
+                <div class="score-circle">
+                    <span class="score-value">85</span>
+                </div>
+            </div>
+            
+            <p class="site-type">Agricultural Digester</p>
+            <p class="site-location">Lat: 00.00, Lon: 00.00</p>
+            
+            <div class="card-body">
+                <div class="section logistics-section">
+                    <h4>Logistics & Fleet</h4>
+                    <ul class="details-list">
+                        <li><span class="label">MRU Dispatched:</span> <span class="val mru-id">-</span></li>
+                        <li><span class="label">Relocation Dist:</span> <span class="val relocation-dist">-</span></li>
+                        <li><span class="label">Nearest Hub:</span> <span class="val hub-name">-</span></li>
+                        <li><span class="label">Route Dist:</span> <span class="val hub-dist">-</span></li>
+                    </ul>
+                </div>
+                
+                <div class="section finance-section">
+                    <h4>Monthly Financials</h4>
+                    <div class="finance-grid">
+                        <div class="fin-item">
+                            <span class="label">Ethanol Rev</span>
+                            <span class="val ethanol-rev">-</span>
+                        </div>
+                        <div class="fin-item highlight-green">
+                            <span class="label">Carbon Rev</span>
+                            <span class="val carbon-rev">-</span>
+                        </div>
+                        <div class="fin-item">
+                            <span class="label">Total Opex</span>
+                            <span class="val total-opex">-</span>
+                        </div>
+                        <div class="fin-item highlight-profit">
+                            <span class="label">Net Profit</span>
+                            <span class="val net-profit">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-footer">
+                <div class="roi-bar-container">
+                    <div class="roi-info">
+                        <span>Projected ROI</span>
+                        <span class="roi-value font-bold">-%</span>
+                    </div>
+                    <div class="roi-progress">
+                        <div class="roi-fill"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <script src="app.js"></script>
+</body>
+</html>

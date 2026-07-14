@@ -1,0 +1,10 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ch4-biofuel-sites"
+version = "0.1.0"
+requires-python = ">=3.12"
+description = "Methane anomaly detection and site ranking"
+readme = "README.md"

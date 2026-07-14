@@ -1,0 +1,18 @@
+{
+    "zoning_regulatory": 10.0,
+    "carbon_intensity_potential": 9.0,
+    "feedstock_stability": 9.0,
+    "feedstock_volume": 8.0,
+    "safety_environmental_buffer": 8.0,
+    "utilities": 8.0,
+    "methane_purity": 7.0,
+    "offtake_logistics": 7.0,
+    "market_proximity": 6.0,
+    "local_ethanol_demand": 6.0,
+    "tax_incentive_subsidy": 6.0,
+    "land_acquisition_cost": 5.0,
+    "byproduct_co2_offtake": 5.0,
+    "topography_site_prep": 4.0,
+    "workforce_availability": 4.0,
+    "climate_risk": 3.0
+}

@@ -1,0 +1,11 @@
+model:
+  in_channels: 12
+  lr: 0.001
+  use_wind: true
+train:
+  batch_size: 4
+  num_workers: 0
+  max_epochs: 1
+data:
+  tile_size: 256
+  demo_samples: 16

@@ -1,0 +1,12 @@
+Metadata-Version: 2.4
+Name: ch4-biofuel-sites
+Version: 0.1.0
+Summary: Methane anomaly detection and site ranking
+Requires-Python: >=3.12
+Description-Content-Type: text/markdown
+
+CH4 Biofuel Sites Project
+Quick start:
+1. conda env create -f env.yml
+2. conda activate ch4sites
+3. python -m src.train --demo
