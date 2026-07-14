@@ -7,6 +7,7 @@ from src.ranking.scorer import SiteScorer
 from src.logistics.routing import OfftakeRouter
 from src.logistics.fleet import FleetManager
 from src.finance.roi import ROICalculator
+from src.dataio.satellite import Sentinel5PIngestor
 
 app = FastAPI(title="Methane-to-Ethanol Platform API")
 
@@ -25,6 +26,7 @@ scorer = SiteScorer(config_path=config_path)
 router = OfftakeRouter(max_distance_km=300.0)
 fleet = FleetManager()
 roi_calc = ROICalculator()
+satellite_ingestor = Sentinel5PIngestor()
 
 @app.get("/api/analyze")
 def analyze_sites(
@@ -37,14 +39,47 @@ def analyze_sites(
     """
     Generates mock methane sites within a bounding box, ranks them, routes logistics, and calculates ROI.
     """
-    # 1. Generate & Score within bounds
-    raw_sites = generate_mock_sites(
-        num_sites=10, 
+    # 1. Generate & Score within bounds using LIVE SATELLITE DATA
+    hotspots = satellite_ingestor.get_ch4_hotspots(
         min_lat=min_lat, 
         max_lat=max_lat, 
         min_lon=min_lon, 
-        max_lon=max_lon
+        max_lon=max_lon,
+        max_sites=5
     )
+    
+    # If API fails or no hotspots found, fallback to empty list
+    raw_sites = []
+    archetypes = ["Agricultural Digester", "Municipal Landfill", "Wastewater Treatment Plant", "Abandoned Coal Mine"]
+    
+    import random
+    for i, spot in enumerate(hotspots):
+        site_type = random.choice(archetypes)
+        site = {
+            "site_id": f"GEE-S5P-{i+1:03d}",
+            "site_type": site_type,
+            "latitude": spot["latitude"],
+            "longitude": spot["longitude"],
+            # Give high feedstock volume because it was detected from space
+            "feedstock_volume": min(1.0, (spot["ch4_val"] * 1000) + 0.5), 
+            "zoning_regulatory": random.uniform(0.1, 1.0),
+            "carbon_intensity_potential": random.uniform(0.4, 1.0), 
+            "feedstock_stability": random.uniform(0.5, 0.9),
+            "safety_environmental_buffer": random.uniform(0.1, 1.0),
+            "utilities": random.uniform(0.2, 0.95),
+            "methane_purity": random.uniform(0.3, 0.9),
+            "offtake_logistics": random.uniform(0.4, 1.0),
+            "market_proximity": random.uniform(0.3, 0.9),
+            "local_ethanol_demand": random.uniform(0.5, 1.0),
+            "tax_incentive_subsidy": random.uniform(0.0, 1.0),
+            "land_acquisition_cost": random.uniform(0.1, 0.8),
+            "byproduct_co2_offtake": random.uniform(0.1, 0.9),
+            "topography_site_prep": random.uniform(0.3, 1.0),
+            "workforce_availability": random.uniform(0.5, 1.0),
+            "climate_risk": random.uniform(0.4, 0.95)
+        }
+        raw_sites.append(site)
+        
     ranked_sites = scorer.score_sites(raw_sites)
     
     results = []
