@@ -23,7 +23,7 @@ app.add_middleware(
 # Initialize Core Services once so caches persist
 config_path = os.path.join(os.path.dirname(__file__), "config", "weights.json")
 scorer = SiteScorer(config_path=config_path)
-router = OfftakeRouter(max_distance_km=300.0)
+router = OfftakeRouter(max_distance_km=2000.0)
 fleet = FleetManager()
 roi_calc = ROICalculator()
 satellite_ingestor = Sentinel5PIngestor()

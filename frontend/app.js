@@ -52,7 +52,7 @@ async function fetchAndRenderData(currency, minLat = 48.0, maxLat = 54.0, minLon
         if (!isMapUpdate) {
             renderSites(data.sites);
         } else {
-            updateMapMarkers(data.sites);
+            updateMapMarkers(data.sites, data.heatmap_url);
         }
         
     } catch (error) {
@@ -187,9 +187,25 @@ function initMap() {
     });
 }
 
-function updateMapMarkers(sites) {
+let currentHeatmapLayer = null;
+
+function updateMapMarkers(sites, heatmapUrl = null) {
     markerLayer.clearLayers();
     
+    // 1. Handle Heatmap Overlay
+    if (currentHeatmapLayer) {
+        map.removeLayer(currentHeatmapLayer);
+        currentHeatmapLayer = null;
+    }
+    
+    if (heatmapUrl) {
+        currentHeatmapLayer = L.tileLayer(heatmapUrl, {
+            opacity: 0.6,
+            zIndex: 10
+        }).addTo(map);
+    }
+    
+    // 2. Handle Site Markers
     if (!sites) return;
 
     sites.forEach(site => {
