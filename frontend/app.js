@@ -49,11 +49,9 @@ async function fetchAndRenderData(currency, minLat = 48.0, maxLat = 54.0, minLon
         
         const data = await response.json();
         
-        if (!isMapUpdate) {
-            renderSites(data.sites);
-        } else {
-            updateMapMarkers(data.sites, data.heatmap_url);
-        }
+        // Always update both views regardless of what triggered the fetch
+        renderSites(data.sites);
+        updateMapMarkers(data.sites, data.heatmap_url);
         
     } catch (error) {
         console.error(error);
@@ -75,7 +73,17 @@ async function fetchAndRenderData(currency, minLat = 48.0, maxLat = 54.0, minLon
 
 scanBtn.addEventListener('click', () => {
     const curr = currencySelect.value;
-    fetchAndRenderData(curr, 48.0, 54.0, 6.0, 14.0, false);
+    
+    let minLat = 48.0, maxLat = 54.0, minLon = 6.0, maxLon = 14.0;
+    if (map) {
+        const bounds = map.getBounds();
+        minLat = bounds.getSouthWest().lat;
+        maxLat = bounds.getNorthEast().lat;
+        minLon = bounds.getSouthWest().lng;
+        maxLon = bounds.getNorthEast().lng;
+    }
+    
+    fetchAndRenderData(curr, minLat, maxLat, minLon, maxLon, false);
 });
 
 function renderSites(sites) {
