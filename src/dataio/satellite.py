@@ -113,10 +113,11 @@ class Sentinel5PIngestor:
             roi = ee.Geometry.Rectangle([min_lon, min_lat, max_lon, max_lat])
             collection = ee.ImageCollection("COPERNICUS/S5P/OFFL/L3_CH4") \
                 .filterBounds(roi) \
-                .filterDate('2023-01-01', '2023-12-31') \
+                .filterDate('2023-06-01', '2023-06-30') \
                 .select('CH4_column_volume_mixing_ratio_dry_air')
                 
-            mean_ch4 = collection.mean().clip(roi)
+            # Using median over 1 month is much faster for the real-time tile server
+            mean_ch4 = collection.median().clip(roi)
             
             # Typical S5P CH4 values are between 1750 and 1950 ppb
             # But the raw data is often in mol/m^2 or mixing ratio. S5P L3 is usually around 1800-1950 ppb.

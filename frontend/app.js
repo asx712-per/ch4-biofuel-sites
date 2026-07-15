@@ -247,7 +247,8 @@ function updateMapMarkers(sites, heatmapUrl = null) {
     if (heatmapUrl) {
         currentHeatmapLayer = L.tileLayer(heatmapUrl, {
             opacity: 0.6,
-            zIndex: 10
+            zIndex: 10,
+            maxNativeZoom: 12 // Prevents EE from failing at high zoom levels
         }).addTo(map);
     }
     
