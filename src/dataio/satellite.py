@@ -5,9 +5,17 @@ from google.oauth2 import service_account
 class Sentinel5PIngestor:
     def __init__(self, key_path: str = None):
         if key_path is None:
-            key_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "config", "gee_key.json")
+            # Check local config first
+            local_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "config", "gee_key.json")
+            # Check Render secret files directory
+            render_path = "/etc/secrets/gee_key.json"
             
-        print("[SATELLITE] Authenticating with Google Earth Engine...")
+            if os.path.exists(render_path):
+                key_path = render_path
+            else:
+                key_path = local_path
+            
+        print(f"[SATELLITE] Authenticating with Google Earth Engine using {key_path}...")
         try:
             credentials = service_account.Credentials.from_service_account_file(key_path)
             scoped_credentials = credentials.with_scopes(['https://www.googleapis.com/auth/earthengine'])
