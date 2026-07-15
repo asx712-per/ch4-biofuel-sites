@@ -204,10 +204,14 @@ function renderSites(sites, fleetUtilization = "0/0") {
                 if(fillElement) fillElement.style.width = `${fillWidth}%`;
             }, 100);
 
-            totalProfit += fin.net_profit;
-            totalCO2e += fin.co2e_avoided_tons;
-            totalMethaneTons += site.logistics.volume_tons || 150.0;
-            sumROI += fin.roi_percentage;
+            // Event Listeners for new Phase 5 buttons
+            clone.querySelector('.btn-telemetry').addEventListener('click', () => {
+                openTelemetryModal(site);
+            });
+            
+            clone.querySelector('.btn-esg').addEventListener('click', () => {
+                openEsgModal(site);
+            });
             
         } else {
             // Unfeasible
@@ -254,6 +258,106 @@ function renderSites(sites, fleetUtilization = "0/0") {
         `;
     }
 }
+
+// --- Phase 5: Modals & Telemetry Logic ---
+let telemetryInterval = null;
+
+function openTelemetryModal(site) {
+    const modal = document.getElementById('modal-telemetry');
+    modal.classList.remove('hidden');
+    
+    // Set base values
+    const basePressure = 150 + (site.score / 2);
+    const baseTemp = 400 + (site.score);
+    const baseOutput = site.logistics.volume_tons * 2;
+    let filterHealth = 100.0;
+    
+    // Initial paint
+    document.getElementById('tel-pressure').textContent = basePressure.toFixed(1);
+    document.getElementById('tel-temp').textContent = baseTemp.toFixed(1);
+    document.getElementById('tel-output').textContent = baseOutput.toFixed(0);
+    document.getElementById('tel-filter').textContent = filterHealth.toFixed(1) + '%';
+    
+    // Simulate live data fluctuating every 800ms
+    telemetryInterval = setInterval(() => {
+        const pressureFluctuation = (Math.random() - 0.5) * 5;
+        const tempFluctuation = (Math.random() - 0.5) * 10;
+        const outFluctuation = (Math.random() - 0.5) * 20;
+        
+        // Filter health slowly degrades
+        filterHealth -= 0.01;
+        
+        document.getElementById('tel-pressure').textContent = (basePressure + pressureFluctuation).toFixed(1);
+        document.getElementById('tel-temp').textContent = (baseTemp + tempFluctuation).toFixed(1);
+        document.getElementById('tel-output').textContent = (baseOutput + outFluctuation).toFixed(0);
+        document.getElementById('tel-filter').textContent = filterHealth.toFixed(2) + '%';
+        
+    }, 800);
+}
+
+function openEsgModal(site) {
+    const modal = document.getElementById('modal-esg');
+    const body = document.getElementById('esg-report-body');
+    const fin = site.finance;
+    const log = site.logistics;
+    
+    body.innerHTML = `
+        <div style="border-bottom: 2px solid #e2e8f0; padding-bottom: 1rem; margin-bottom: 1rem;">
+            <h1 style="margin: 0; color: #0f172a; font-size: 2rem;">SITE ${site.id}</h1>
+            <p style="margin: 5px 0 0 0; color: #64748b;">${site.type} | Lat: ${site.latitude.toFixed(4)}, Lon: ${site.longitude.toFixed(4)}</p>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+            <div>
+                <h3 style="color: #10b981; border-bottom: 1px solid #10b981; padding-bottom: 0.5rem;">Environmental Impact</h3>
+                <ul style="list-style: none; padding: 0; line-height: 2;">
+                    <li><strong>Methane Processed:</strong> ${log.volume_tons.toLocaleString()} tons/month</li>
+                    <li><strong>CO2e Avoided:</strong> ${fin.co2e_avoided_tons.toLocaleString()} tons/month</li>
+                    <li><strong>Carbon Intensity Score:</strong> A+ (Negative Emissions)</li>
+                    <li><strong>Dispersion Mitigated:</strong> Yes</li>
+                </ul>
+            </div>
+            
+            <div>
+                <h3 style="color: #0ea5e9; border-bottom: 1px solid #0ea5e9; padding-bottom: 0.5rem;">Financial Metrics</h3>
+                <ul style="list-style: none; padding: 0; line-height: 2;">
+                    <li><strong>Gross Revenue:</strong> ${log.currency_symbol}${(fin.revenues.ethanol_sales + fin.revenues.carbon_credits).toLocaleString()} /mo</li>
+                    <li><strong>Operational Cost:</strong> ${log.currency_symbol}${fin.expenses.total_expenses.toLocaleString()} /mo</li>
+                    <li><strong>Net Profit:</strong> ${log.currency_symbol}${fin.net_profit.toLocaleString()} /mo</li>
+                    <li><strong>Estimated ROI:</strong> ${fin.roi_percentage.toFixed(0)}%</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div style="margin-top: 2rem; background: #f8fafc; padding: 1.5rem; border-radius: 8px;">
+            <h4 style="margin-top: 0; color: #475569;">Executive Summary</h4>
+            <p style="color: #334155; line-height: 1.6; margin-bottom: 0;">
+                The deployment of Mobile Refinement Unit <strong>${log.unit_id}</strong> to this ${site.type.toLowerCase()} 
+                is actively preventing the release of ${log.volume_tons.toLocaleString()} tons of raw methane into the atmosphere. 
+                By refining this captured gas into bio-ethanol and transporting it ${log.hub_distance_km.toFixed(1)} km to the nearest blending hub 
+                (${log.nearest_hub}), the operation yields a net profit of ${log.currency_symbol}${fin.net_profit.toLocaleString()} 
+                while generating valid ESG offsets equivalent to ${fin.co2e_avoided_tons.toLocaleString()} tons of CO2.
+            </p>
+        </div>
+        
+        <div style="margin-top: 2rem; font-size: 0.8rem; color: #94a3b8; text-align: center;">
+            Generated by Methane-to-Ethanol Platform &bull; ${new Date().toLocaleDateString()}
+        </div>
+    `;
+    
+    modal.classList.remove('hidden');
+}
+
+// Close Modals
+document.querySelectorAll('.close-modal').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        e.target.closest('.modal-overlay').classList.add('hidden');
+        if (telemetryInterval) {
+            clearInterval(telemetryInterval);
+            telemetryInterval = null;
+        }
+    });
+});
 
 
 // --- 3. Live Interactive Leaflet Map ---
