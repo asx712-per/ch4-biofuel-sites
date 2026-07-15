@@ -18,12 +18,19 @@ class ROICalculator:
         # Global Warming Potential of Methane (1 ton CH4 = ~28 tons CO2e)
         self.methane_gwp = 28.0
 
-    def calculate_monthly_roi(self, volume_tons: float, transport_cost: float, currency: str = "USD") -> Dict[str, Any]:
+    def calculate_monthly_roi(self, volume_tons: float, transport_cost: float, currency: str = "USD", carbon_price_override: float = None, ethanol_price_override: float = None) -> Dict[str, Any]:
         """
         Calculates the monthly financial projections based on captured volume and transport costs.
         """
         # Get dynamic prices
         eth_price, carb_price, symbol = self.market.get_prices(currency=currency)
+        
+        # Override if provided by user simulation sliders
+        if ethanol_price_override is not None:
+            eth_price = ethanol_price_override
+            
+        if carbon_price_override is not None:
+            carb_price = carbon_price_override
         
         # REVENUES
         # 1. Direct Ethanol Sales

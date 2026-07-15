@@ -8,6 +8,7 @@ from src.logistics.routing import OfftakeRouter
 from src.logistics.fleet import FleetManager
 from src.finance.roi import ROICalculator
 from src.dataio.satellite import Sentinel5PIngestor
+from src.science.dispersion import GaussianPlumeModel
 
 app = FastAPI(title="Methane-to-Ethanol Platform API")
 
@@ -27,6 +28,7 @@ router = OfftakeRouter(max_distance_km=2000.0)
 fleet = FleetManager()
 roi_calc = ROICalculator()
 satellite_ingestor = Sentinel5PIngestor()
+plume_model = GaussianPlumeModel()
 
 @app.get("/api/analyze")
 def analyze_sites(
@@ -38,9 +40,11 @@ def analyze_sites(
     max_mrus: int = 10,
     transport_cost: float = 0.15,
     max_dist: float = 300.0,
-    min_score: float = 50.0
+    min_score: float = 50.0,
+    carbon_price: float = None,
+    ethanol_price: float = None
 ):
-    print(f"Received request: currency={currency}, bounds=({min_lat}, {max_lat}, {min_lon}, {max_lon}), mrus={max_mrus}, cost={transport_cost}, dist={max_dist}, score={min_score}")
+    print(f"Received request: currency={currency}, bounds=({min_lat}, {max_lat}, {min_lon}, {max_lon}), mrus={max_mrus}, cost={transport_cost}, dist={max_dist}, score={min_score}, carb={carbon_price}, eth={ethanol_price}")
     
     # 1. Generate & Score within bounds using LIVE SATELLITE DATA
     hotspots = satellite_ingestor.get_ch4_hotspots(
@@ -121,13 +125,25 @@ def analyze_sites(
             finance = roi_calc.calculate_monthly_roi(
                 volume_tons=route["volume_tons"],
                 transport_cost=route["estimated_transport_cost"],
-                currency=currency
+                currency=currency,
+                carbon_price_override=carbon_price,
+                ethanol_price_override=ethanol_price
             )
             site_data["logistics"] = route
             site_data["finance"] = finance
+            
+            # Phase 4: Calculate Plume Dispersion for feasible sites
+            plume = plume_model.generate_plume_polygon(
+                lat=site["latitude"],
+                lon=site["longitude"],
+                volume_tons=route["volume_tons"]
+            )
+            site_data["dispersion"] = plume
+            
         else:
             site_data["logistics"] = route
             site_data["finance"] = None
+            site_data["dispersion"] = None
             
         results.append(site_data)
         

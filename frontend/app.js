@@ -36,16 +36,21 @@ const simMrus = document.getElementById('sim-mrus');
 const simCost = document.getElementById('sim-cost');
 const simDist = document.getElementById('sim-dist');
 const simScore = document.getElementById('sim-score');
+const simCarb = document.getElementById('sim-carb');
+const simEth = document.getElementById('sim-eth');
 
 // Update Slider Text Values
 simCost.addEventListener('input', e => document.getElementById('val-cost').textContent = e.target.value);
 simDist.addEventListener('input', e => document.getElementById('val-dist').textContent = e.target.value);
 simScore.addEventListener('input', e => document.getElementById('val-score').textContent = e.target.value);
+simCarb.addEventListener('input', e => document.getElementById('val-carb').textContent = e.target.value);
+simEth.addEventListener('input', e => document.getElementById('val-eth').textContent = e.target.value);
 
 // Change currency label based on select
 currencySelect.addEventListener('change', e => {
     const sym = e.target.value === 'USD' ? '$' : (e.target.value === 'EUR' ? '€' : '¥');
     document.getElementById('currency-label').textContent = sym;
+    document.querySelectorAll('.currency-label-secondary').forEach(el => el.textContent = sym);
 });
 
 async function fetchAndRenderData(currency, minLat = 48.0, maxLat = 54.0, minLon = 6.0, maxLon = 14.0, isMapUpdate = false) {
@@ -72,8 +77,10 @@ async function fetchAndRenderData(currency, minLat = 48.0, maxLat = 54.0, minLon
         const cost = simCost.value;
         const dist = simDist.value;
         const score = simScore.value;
+        const carb = simCarb.value;
+        const eth = simEth.value;
 
-        const url = `${API_BASE}/api/analyze?currency=${currency}&min_lat=${minLat}&max_lat=${maxLat}&min_lon=${minLon}&max_lon=${maxLon}&max_mrus=${mrus}&transport_cost=${cost}&max_dist=${dist}&min_score=${score}`;
+        const url = `${API_BASE}/api/analyze?currency=${currency}&min_lat=${minLat}&max_lat=${maxLat}&min_lon=${minLon}&max_lon=${maxLon}&max_mrus=${mrus}&transport_cost=${cost}&max_dist=${dist}&min_score=${score}&carbon_price=${carb}&ethanol_price=${eth}`;
         const response = await fetch(url);
         
         if (!response.ok) throw new Error("API request failed");
@@ -351,24 +358,13 @@ function updateMapMarkers(sites, heatmapUrl = null, hubs = []) {
         });
     }
 
-    // 3. Handle Site Markers
-    if (!sites) return;
+    // 3. Add Methane Sites and Plume Polygons
+    if (!sites || sites.length === 0) return;
 
     sites.forEach(site => {
         const isFeasible = site.logistics && site.logistics.feasible;
-        
-        // Create custom dot marker based on feasibility
         const color = isFeasible ? '#10b981' : '#ef4444';
         
-        const circleMarker = L.circleMarker([site.latitude, site.longitude], {
-            radius: 8,
-            fillColor: color,
-            color: '#ffffff',
-            weight: 2,
-            opacity: 1,
-            fillOpacity: 0.8
-        });
-
         let popupContent = `
             <div style="font-family: 'Inter', sans-serif;">
                 <h3>${site.id}</h3>
@@ -380,16 +376,46 @@ function updateMapMarkers(sites, heatmapUrl = null, hubs = []) {
             const sym = site.logistics.currency_symbol;
             popupContent += `
                 <p><strong>Offtake Route:</strong> ${site.logistics.hub_distance_km.toFixed(1)}km to ${site.logistics.nearest_hub}</p>
-                <span class="roi">ROI: ${site.finance.roi_percentage.toFixed(0)}%</span>
+                <span class="roi" style="color: #10b981; font-weight: bold;">ROI: ${site.finance.roi_percentage.toFixed(0)}%</span>
             `;
+            
+            // Draw Dispersion Plume Polygon
+            if (site.dispersion && site.dispersion.polygon) {
+                const polygon = L.polygon(site.dispersion.polygon, {
+                    color: '#f59e0b',
+                    fillColor: '#fcd34d',
+                    fillOpacity: 0.3,
+                    weight: 1,
+                    dashArray: '4'
+                });
+                
+                polygon.bindPopup(`
+                    <div style="font-family: 'Inter', sans-serif;">
+                        <h4 style="margin:0 0 5px 0;">Plume Dispersion Zone</h4>
+                        <p style="margin:2px 0;"><strong>Wind Speed:</strong> ${site.dispersion.wind_speed_kmh} km/h</p>
+                        <p style="margin:2px 0;"><strong>Direction:</strong> ${site.dispersion.wind_direction_deg}&deg;</p>
+                        <p style="margin:2px 0;"><strong>Est. Plume Length:</strong> ${site.dispersion.plume_length_km.toFixed(1)} km</p>
+                    </div>
+                `);
+                markerLayer.addLayer(polygon);
+            }
         } else {
             popupContent += `
-                <p style="color: #ef4444; margin-top: 10px;"><strong>Status:</strong> ${site.logistics.reason}</p>
+                <p style="color: #ef4444; margin-top: 10px;"><strong>Status:</strong> ${site.logistics ? site.logistics.reason : "Unknown error"}</p>
             `;
         }
 
         popupContent += `</div>`;
         
+        const circleMarker = L.circleMarker([site.latitude, site.longitude], {
+            radius: 8,
+            fillColor: color,
+            color: '#ffffff',
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.8
+        });
+
         circleMarker.bindPopup(popupContent);
         markerLayer.addLayer(circleMarker);
     });
