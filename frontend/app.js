@@ -186,7 +186,7 @@ function renderSites(sites, fleetUtilization = "0/0") {
             clone.querySelector('.mru-id').textContent = site.logistics.unit_id;
             clone.querySelector('.relocation-dist').textContent = `${site.logistics.relocation_distance_km.toFixed(1)} km`;
             clone.querySelector('.hub-name').textContent = site.logistics.nearest_hub;
-            clone.querySelector('.hub-dist').textContent = `${site.logistics.hub_distance_km.toFixed(1)} km`;
+            clone.querySelector('.hub-dist').textContent = `${site.logistics.distance_km.toFixed(1)} km`;
 
             // Finance Data
             const fin = site.finance;
@@ -334,7 +334,7 @@ function openEsgModal(site) {
             <p style="color: #334155; line-height: 1.6; margin-bottom: 0;">
                 The deployment of Mobile Refinement Unit <strong>${log.unit_id}</strong> to this ${site.type.toLowerCase()} 
                 is actively preventing the release of ${log.volume_tons.toLocaleString()} tons of raw methane into the atmosphere. 
-                By refining this captured gas into bio-ethanol and transporting it ${log.hub_distance_km.toFixed(1)} km to the nearest blending hub 
+                By refining this captured gas into bio-ethanol and transporting it ${log.distance_km.toFixed(1)} km to the nearest blending hub 
                 (${log.nearest_hub}), the operation yields a net profit of ${log.currency_symbol}${fin.net_profit.toLocaleString()} 
                 while generating valid ESG offsets equivalent to ${fin.co2e_avoided_tons.toLocaleString()} tons of CO2.
             </p>
@@ -479,7 +479,7 @@ function updateMapMarkers(sites, heatmapUrl = null, hubs = []) {
         if (isFeasible) {
             const sym = site.logistics.currency_symbol;
             popupContent += `
-                <p><strong>Offtake Route:</strong> ${site.logistics.hub_distance_km.toFixed(1)}km to ${site.logistics.nearest_hub}</p>
+                <p><strong>Offtake Route:</strong> ${site.logistics.distance_km.toFixed(1)}km to ${site.logistics.nearest_hub}</p>
                 <span class="roi" style="color: #10b981; font-weight: bold;">ROI: ${site.finance.roi_percentage.toFixed(0)}%</span>
             `;
             
