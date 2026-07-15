@@ -133,10 +133,10 @@ def analyze_sites(
         else:
             site_data["logistics"] = {
                 "feasible": False,
-                "reason": route.get("reason", "No mobile units available.") if not dispatch else route.get("reason")
+                "reason": route.get("reason", "All Mobile Refinement Units (MRUs) are currently deployed in other active regions.") if not dispatch else route.get("reason")
             }
             if not dispatch:
-                site_data["logistics"]["reason"] = "No mobile units available."
+                site_data["logistics"]["reason"] = "All Mobile Refinement Units (MRUs) are currently deployed in other active regions."
             
         results.append(site_data)
         
@@ -145,4 +145,11 @@ def analyze_sites(
         min_lat=min_lat, max_lat=max_lat, min_lon=min_lon, max_lon=max_lon
     )
 
-    return {"status": "success", "currency": currency, "heatmap_url": heatmap_url, "sites": results}
+    return {
+        "status": "success", 
+        "currency": currency, 
+        "heatmap_url": heatmap_url, 
+        "sites": results,
+        "gee_authenticated": satellite_ingestor.is_authenticated,
+        "hubs": router.get_all_hubs()
+    }

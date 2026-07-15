@@ -65,6 +65,9 @@ class OfftakeRouter:
             "Marseille Hub": (43.2965, 5.3698)
         }
 
+    def get_all_hubs(self):
+        return [{"name": name, "lat": coords[0], "lng": coords[1]} for name, coords in self.blending_hubs.items()]
+
     def route_to_market(self, site_lat: float, site_lon: float, predicted_volume_tons: float = 100.0, currency: str = "USD") -> Dict[str, Any]:
         """
         Finds the nearest blending hub and calculates the distance, cost in the requested currency, 
@@ -85,7 +88,7 @@ class OfftakeRouter:
         if min_distance > self.max_distance_km:
             return {
                 "feasible": False,
-                "reason": f"Nearest hub ({best_hub}) is {min_distance:.1f} km away. Exceeds cutoff of {self.max_distance_km} km due to significant transit losses.",
+                "reason": f"Target exceeds {self.max_distance_km}km offtake threshold to nearest hub ({best_hub}). Consider establishing a new local distribution hub to mitigate transit losses.",
                 "distance_km": min_distance,
                 "nearest_hub": best_hub
             }

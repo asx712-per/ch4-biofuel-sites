@@ -55,10 +55,13 @@
             <div class="status-panel">
                 <h3>System Status</h3>
                 <div class="status-indicator">
-                    <span class="dot active"></span> GEE Satellite Link
+                    <span id="status-gee" class="dot"></span> GEE Satellite Link
                 </div>
                 <div class="status-indicator">
-                    <span class="dot active"></span> Route Optimizer
+                    <span id="status-route" class="dot"></span> Route Optimizer
+                </div>
+                <div class="status-indicator">
+                    <span id="status-market" class="dot"></span> Market Pricing API
                 </div>
             </div>
         </aside>
@@ -117,10 +120,10 @@
                 <div class="section logistics-section">
                     <h4>Logistics & Fleet</h4>
                     <ul class="details-list">
-                        <li><span class="label">MRU Dispatched:</span> <span class="val mru-id">-</span></li>
-                        <li><span class="label">Relocation Dist:</span> <span class="val relocation-dist">-</span></li>
+                        <li><span class="label">Deployed Unit ID:</span> <span class="val mru-id">-</span></li>
+                        <li><span class="label">Deployment Transit:</span> <span class="val relocation-dist">-</span></li>
                         <li><span class="label">Nearest Hub:</span> <span class="val hub-name">-</span></li>
-                        <li><span class="label">Route Dist:</span> <span class="val hub-dist">-</span></li>
+                        <li><span class="label">Market Offtake Route:</span> <span class="val hub-dist">-</span></li>
                     </ul>
                 </div>
                 
@@ -128,19 +131,19 @@
                     <h4>Monthly Financials</h4>
                     <div class="finance-grid">
                         <div class="fin-item">
-                            <span class="label">Ethanol Rev</span>
+                            <span class="label">Gross Commodity Value</span>
                             <span class="val ethanol-rev">-</span>
                         </div>
                         <div class="fin-item highlight-green">
-                            <span class="label">Carbon Rev</span>
+                            <span class="label">Carbon Offset Credit</span>
                             <span class="val carbon-rev">-</span>
                         </div>
                         <div class="fin-item">
-                            <span class="label">Total Opex</span>
+                            <span class="label">Operating Costs</span>
                             <span class="val total-opex">-</span>
                         </div>
                         <div class="fin-item highlight-profit">
-                            <span class="label">Net Profit</span>
+                            <span class="label">Projected Yield</span>
                             <span class="val net-profit">-</span>
                         </div>
                     </div>
