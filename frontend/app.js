@@ -75,7 +75,15 @@ scanBtn.addEventListener('click', () => {
     const curr = currencySelect.value;
     
     let minLat = 48.0, maxLat = 54.0, minLon = 6.0, maxLon = 14.0;
-    if (map) {
+    
+    if (currentDrawnBounds) {
+        // User drew a specific rectangle
+        minLat = currentDrawnBounds.getSouthWest().lat;
+        maxLat = currentDrawnBounds.getNorthEast().lat;
+        minLon = currentDrawnBounds.getSouthWest().lng;
+        maxLon = currentDrawnBounds.getNorthEast().lng;
+    } else if (map) {
+        // Fallback to full map viewport
         const bounds = map.getBounds();
         minLat = bounds.getSouthWest().lat;
         maxLat = bounds.getNorthEast().lat;
@@ -167,6 +175,8 @@ function renderSites(sites) {
 // --- 3. Live Interactive Leaflet Map ---
 let map;
 let markerLayer = L.layerGroup();
+let drawnItems = new L.FeatureGroup();
+let currentDrawnBounds = null;
 
 function initMap() {
     // Default focus on Germany/Europe
@@ -178,21 +188,48 @@ function initMap() {
         maxZoom: 20
     }).addTo(map);
 
+    map.addLayer(drawnItems);
     markerLayer.addTo(map);
 
-    // Event listener for map panning/zooming
-    map.on('moveend', () => {
-        const bounds = map.getBounds();
-        const minLat = bounds.getSouthWest().lat;
-        const maxLat = bounds.getNorthEast().lat;
-        const minLon = bounds.getSouthWest().lng;
-        const maxLon = bounds.getNorthEast().lng;
-        
-        const curr = currencySelect.value;
-        
-        // Fetch sites in the new bounding box (Silently)
-        fetchAndRenderData(curr, minLat, maxLat, minLon, maxLon, true);
+    // Initialize Leaflet Draw Control
+    const drawControl = new L.Control.Draw({
+        edit: {
+            featureGroup: drawnItems,
+            remove: true
+        },
+        draw: {
+            polygon: false,
+            polyline: false,
+            circle: false,
+            circlemarker: false,
+            marker: false,
+            rectangle: {
+                shapeOptions: {
+                    color: '#064e3b',
+                    weight: 2,
+                    fillOpacity: 0.1
+                }
+            }
+        }
     });
+    map.addControl(drawControl);
+
+    // Handle Draw Events
+    map.on(L.Draw.Event.CREATED, function (e) {
+        drawnItems.clearLayers(); // Only allow one selection box at a time
+        const layer = e.layer;
+        drawnItems.addLayer(layer);
+        
+        currentDrawnBounds = layer.getBounds();
+    });
+    
+    map.on(L.Draw.Event.DELETED, function (e) {
+        if (drawnItems.getLayers().length === 0) {
+            currentDrawnBounds = null;
+        }
+    });
+
+    // Auto-scanning on pan has been disabled to give user control via selection.
 }
 
 let currentHeatmapLayer = null;
