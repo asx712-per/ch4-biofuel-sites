@@ -30,28 +30,31 @@ satellite_ingestor = Sentinel5PIngestor()
 
 @app.get("/api/analyze")
 def analyze_sites(
-    currency: str = "EUR",
-    min_lat: float = 48.0,
-    max_lat: float = 54.0,
-    min_lon: float = 6.0,
-    max_lon: float = 14.0
+    currency: str = "USD", 
+    min_lat: float = 48.0, 
+    max_lat: float = 54.0, 
+    min_lon: float = 6.0, 
+    max_lon: float = 14.0,
+    max_mrus: int = 10,
+    transport_cost: float = 0.15,
+    max_dist: float = 300.0,
+    min_score: float = 50.0
 ):
-    """
-    Generates mock methane sites within a bounding box, ranks them, routes logistics, and calculates ROI.
-    """
+    print(f"Received request: currency={currency}, bounds=({min_lat}, {max_lat}, {min_lon}, {max_lon}), mrus={max_mrus}, cost={transport_cost}, dist={max_dist}, score={min_score}")
+    
     # 1. Generate & Score within bounds using LIVE SATELLITE DATA
     hotspots = satellite_ingestor.get_ch4_hotspots(
         min_lat=min_lat, 
         max_lat=max_lat, 
         min_lon=min_lon, 
         max_lon=max_lon,
-        max_sites=5
+        max_sites=10 # Increased to 10 for better simulation
     )
     
     import random
     # If API fails, GEE is unauthenticated, or no hotspots found, generate mock hotspots
     if not hotspots:
-        for _ in range(5):
+        for _ in range(10):
             hotspots.append({
                 "latitude": random.uniform(min_lat, max_lat),
                 "longitude": random.uniform(min_lon, max_lon),
@@ -89,56 +92,58 @@ def analyze_sites(
         raw_sites.append(site)
         
     ranked_sites = scorer.score_sites(raw_sites)
-    
+
     results = []
-    fleet = FleetManager() # Fresh fleet for every scan
-    
-    # 2. Process Top 5 Sites
-    for site in ranked_sites[:5]:
+    for site in ranked_sites:
+        if site["final_score"] < min_score:
+            continue # Filter out low-viability sites
+            
         site_data = {
             "id": site["site_id"],
             "type": site["site_type"],
             "score": site["final_score"],
             "latitude": site["latitude"],
             "longitude": site["longitude"],
-            "logistics": None,
-            "finance": None
         }
         
-        # Fleet Dispatch
-        dispatch = fleet.dispatch_unit(site['latitude'], site['longitude'])
+        # Route and price
+        route = router.route_to_market(
+            site["latitude"], 
+            site["longitude"], 
+            predicted_volume_tons=random.uniform(50, 200), 
+            currency=currency,
+            max_dist_override=max_dist,
+            cost_override=transport_cost
+        )
         
-        # Route to Market
-        route = router.route_to_market(site['latitude'], site['longitude'], predicted_volume_tons=150.0, currency=currency)
-        
-        if dispatch and route["feasible"]:
-            site_data["logistics"] = {
-                "unit_id": dispatch["unit_id"],
-                "relocation_distance_km": dispatch["relocation_distance_km"],
-                "nearest_hub": route["nearest_hub"],
-                "hub_distance_km": route["distance_km"],
-                "transport_cost": route["estimated_transport_cost"],
-                "transport_cost_rate": route["current_rate_applied"],
-                "currency_symbol": route["currency_symbol"]
-            }
-            
-            # ROI Projection
-            financials = roi_calc.calculate_monthly_roi(
-                volume_tons=route['volume_tons'], 
+        if route["feasible"]:
+            # Financial projection
+            finance = roi_calc.calculate_monthly_roi(
+                volume_tons=route["volume_tons"],
                 transport_cost=route["estimated_transport_cost"],
                 currency=currency
             )
-            site_data["finance"] = financials
-            
+            site_data["logistics"] = route
+            site_data["finance"] = finance
         else:
-            site_data["logistics"] = {
-                "feasible": False,
-                "reason": route.get("reason", "All Mobile Refinement Units (MRUs) are currently deployed in other active regions.") if not dispatch else route.get("reason")
-            }
-            if not dispatch:
-                site_data["logistics"]["reason"] = "All Mobile Refinement Units (MRUs) are currently deployed in other active regions."
+            site_data["logistics"] = route
+            site_data["finance"] = None
             
         results.append(site_data)
+        
+    # Enforce MRU fleet limits
+    mrus_deployed = 0
+    for site in results:
+        if site.get("logistics", {}).get("feasible", False):
+            if mrus_deployed < max_mrus:
+                site["logistics"]["unit_id"] = f"MRU-{random.randint(10, 99)}"
+                # Add random relocation distance since we bypassed FleetManager
+                site["logistics"]["relocation_distance_km"] = random.uniform(10.0, 150.0)
+                mrus_deployed += 1
+            else:
+                site["logistics"]["feasible"] = False
+                site["logistics"]["reason"] = f"Fleet Limit Reached. All {max_mrus} available Mobile Refinement Units (MRUs) are currently deployed."
+                site["finance"] = None
         
     # Generate the Heatmap Tile URL
     heatmap_url = satellite_ingestor.get_ch4_heatmap_url(
@@ -151,5 +156,6 @@ def analyze_sites(
         "heatmap_url": heatmap_url, 
         "sites": results,
         "gee_authenticated": satellite_ingestor.is_authenticated,
-        "hubs": router.get_all_hubs()
+        "hubs": router.get_all_hubs(),
+        "fleet_utilization": f"{mrus_deployed}/{max_mrus}"
     }

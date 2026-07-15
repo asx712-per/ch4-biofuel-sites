@@ -130,6 +130,50 @@ body {
     margin-bottom: auto;
 }
 
+/* Controls & Action Area */
+.action-area {
+    margin-bottom: 2rem;
+}
+
+.input-group {
+    margin-bottom: 1rem;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+}
+
+.input-group select,
+.input-group input[type="number"] {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+    background-color: var(--surface);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+.input-group input[type="range"] {
+    width: 100%;
+    accent-color: var(--primary-green);
+    margin-bottom: 0.25rem;
+}
+
+.slider-val {
+    font-size: 0.85rem;
+    color: var(--primary-green);
+    font-weight: 700;
+    text-align: right;
+}
+
 .control-group {
     display: flex;
     flex-direction: column;

@@ -32,6 +32,22 @@ navLinks.forEach(link => {
 });
 
 // --- 2. Data Fetching & Dashboard ---
+const simMrus = document.getElementById('sim-mrus');
+const simCost = document.getElementById('sim-cost');
+const simDist = document.getElementById('sim-dist');
+const simScore = document.getElementById('sim-score');
+
+// Update Slider Text Values
+simCost.addEventListener('input', e => document.getElementById('val-cost').textContent = e.target.value);
+simDist.addEventListener('input', e => document.getElementById('val-dist').textContent = e.target.value);
+simScore.addEventListener('input', e => document.getElementById('val-score').textContent = e.target.value);
+
+// Change currency label based on select
+currencySelect.addEventListener('change', e => {
+    const sym = e.target.value === 'USD' ? '$' : (e.target.value === 'EUR' ? '€' : '¥');
+    document.getElementById('currency-label').textContent = sym;
+});
+
 async function fetchAndRenderData(currency, minLat = 48.0, maxLat = 54.0, minLon = 6.0, maxLon = 14.0, isMapUpdate = false) {
     const dotGee = document.getElementById('status-gee');
     const dotRoute = document.getElementById('status-route');
@@ -52,7 +68,12 @@ async function fetchAndRenderData(currency, minLat = 48.0, maxLat = 54.0, minLon
     }
 
     try {
-        const url = `${API_BASE}/api/analyze?currency=${currency}&min_lat=${minLat}&max_lat=${maxLat}&min_lon=${minLon}&max_lon=${maxLon}`;
+        const mrus = simMrus.value;
+        const cost = simCost.value;
+        const dist = simDist.value;
+        const score = simScore.value;
+
+        const url = `${API_BASE}/api/analyze?currency=${currency}&min_lat=${minLat}&max_lat=${maxLat}&min_lon=${minLon}&max_lon=${maxLon}&max_mrus=${mrus}&transport_cost=${cost}&max_dist=${dist}&min_score=${score}`;
         const response = await fetch(url);
         
         if (!response.ok) throw new Error("API request failed");
@@ -74,7 +95,7 @@ async function fetchAndRenderData(currency, minLat = 48.0, maxLat = 54.0, minLon
         }
         
         // Always update both views regardless of what triggered the fetch
-        renderSites(data.sites);
+        renderSites(data.sites, data.fleet_utilization);
         updateMapMarkers(data.sites, data.heatmap_url, data.hubs);
         
     } catch (error) {
@@ -124,7 +145,7 @@ scanBtn.addEventListener('click', () => {
     fetchAndRenderData(curr, minLat, maxLat, minLon, maxLon, false);
 });
 
-function renderSites(sites) {
+function renderSites(sites, fleetUtilization = "0/0") {
     if (!sites || sites.length === 0) {
         sitesContainer.innerHTML = `<div class="empty-state"><p>No viable sites found in this region.</p></div>`;
         return;
@@ -205,6 +226,10 @@ function renderSites(sites) {
                     <p style="font-size: 1.25rem; color: var(--ink); font-weight: 600;">${feasibleCount} / ${sites.length} Sites</p>
                     <p style="font-size: 0.85rem; color: var(--muted); margin-top: 8px; font-weight: 600; text-transform: uppercase;">Average ROI</p>
                     <p style="font-size: 1.25rem; color: var(--primary-green); font-weight: 600;">${avgROI}%</p>
+                </div>
+                <div>
+                    <p style="font-size: 0.85rem; color: var(--muted); font-weight: 600; text-transform: uppercase;">Fleet Utilization</p>
+                    <p style="font-size: 1.25rem; color: #f59e0b; font-weight: 600;">${fleetUtilization} MRUs Deployed</p>
                 </div>
                 <div style="text-align: right;">
                     <p style="font-size: 0.85rem; color: var(--muted); font-weight: 600; text-transform: uppercase;">Total Network Profit</p>

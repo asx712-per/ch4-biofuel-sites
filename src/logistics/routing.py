@@ -68,7 +68,7 @@ class OfftakeRouter:
     def get_all_hubs(self):
         return [{"name": name, "lat": coords[0], "lng": coords[1]} for name, coords in self.blending_hubs.items()]
 
-    def route_to_market(self, site_lat: float, site_lon: float, predicted_volume_tons: float = 100.0, currency: str = "USD") -> Dict[str, Any]:
+    def route_to_market(self, site_lat: float, site_lon: float, predicted_volume_tons: float = 100.0, currency: str = "USD", max_dist_override: float = None, cost_override: float = None) -> Dict[str, Any]:
         """
         Finds the nearest blending hub and calculates the distance, cost in the requested currency, 
         and checks the maximum distance cutoff.
@@ -85,15 +85,21 @@ class OfftakeRouter:
                 best_hub = hub_name
                 
         # Check against the maximum distance cutoff
-        if min_distance > self.max_distance_km:
+        cutoff = max_dist_override if max_dist_override is not None else self.max_distance_km
+        if min_distance > cutoff:
             return {
                 "feasible": False,
-                "reason": f"Target exceeds {self.max_distance_km}km offtake threshold to nearest hub ({best_hub}). Consider establishing a new local distribution hub to mitigate transit losses.",
+                "reason": f"Target exceeds {cutoff}km offtake threshold to nearest hub ({best_hub}). Consider establishing a new local distribution hub to mitigate transit losses.",
                 "distance_km": min_distance,
                 "nearest_hub": best_hub
             }
             
         # Get the latest dynamic cost in the requested currency
+        if cost_override is not None:
+            # If user explicitly sets cost, ignore dynamic fluctuation
+            self.fuel_service.baseline_cost_usd = cost_override
+            self.fuel_service.current_price_usd = cost_override
+            
         current_rate, symbol = self.fuel_service.get_price_per_km_ton(currency)
         estimated_cost = min_distance * current_rate * predicted_volume_tons
         
