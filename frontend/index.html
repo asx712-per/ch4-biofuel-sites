@@ -18,73 +18,67 @@
     <div class="app-container">
         <!-- Sidebar / Control Panel -->
         <aside class="sidebar">
+    <!-- Top Navigation -->
+    <nav class="top-nav">
+        <div class="nav-wrap">
             <div class="logo">
                 <div class="logo-icon"></div>
-                <h1>CH4<span>Biofuel</span></h1>
+                <h1>Methane<span>Ethanol</span></h1>
             </div>
-            
-            <p class="description">
-                Real-time predictive pipeline for locating high-volume methane leaks and routing them for bio-ethanol refinement.
-            </p>
+            <div class="nav-links">
+                <a href="#" class="nav-link active" data-target="view-dashboard">Dashboard</a>
+                <a href="#" class="nav-link" data-target="view-map">Live Map</a>
+            </div>
+        </div>
+    </nav>
 
-            <nav class="sidebar-nav">
-                <a href="#" class="nav-link active" data-target="view-dashboard">
-                    <span class="nav-icon">📊</span> Dashboard
-                </a>
-                <a href="#" class="nav-link" data-target="view-map">
-                    <span class="nav-icon">🌍</span> Live Map
-                </a>
-                <a href="#" class="nav-link" data-target="view-logistics">
-                    <span class="nav-icon">🚚</span> Logistics & Fleet
-                </a>
-                <a href="#" class="nav-link" data-target="view-market">
-                    <span class="nav-icon">📈</span> Market Intel
-                </a>
-            </nav>
+    <div class="app-container">
+        <!-- Controls Sidebar -->
+        <aside class="sidebar">
+            <p class="description">
+                Predictive analytics platform identifying optimal regions to deploy Mobile Refinement Units (MRUs).
+            </p>
 
             <div class="controls">
                 <div class="control-group">
-                    <label for="currency-select">Currency</label>
+                    <label for="currency-select">Financial Currency</label>
                     <select id="currency-select">
-                        <option value="EUR">Euros (EUR)</option>
-                        <option value="USD">US Dollars (USD)</option>
-                        <option value="CNY">Chinese Yuan (CNY)</option>
+                        <option value="EUR">Euro (€)</option>
+                        <option value="USD">US Dollar ($)</option>
+                        <option value="GBP">British Pound (£)</option>
                     </select>
                 </div>
-                
+
                 <button id="scan-btn" class="primary-btn">
                     <span class="btn-text">Run Predictive Scan</span>
-                    <span class="loader hidden"></span>
+                    <div class="loader hidden"></div>
                 </button>
             </div>
-            
+
             <div class="status-panel">
                 <h3>System Status</h3>
                 <div class="status-indicator">
-                    <span class="dot active"></span> API Connected
+                    <span class="dot active"></span> GEE Satellite Link
                 </div>
                 <div class="status-indicator">
-                    <span class="dot active"></span> Logistics Online
-                </div>
-                <div class="status-indicator">
-                    <span class="dot active"></span> Market Sync Active
+                    <span class="dot active"></span> Route Optimizer
                 </div>
             </div>
         </aside>
 
-        <!-- Main Content Area -->
+        <!-- Main Content -->
         <main class="main-content">
-            
-            <!-- VIEW 1: DASHBOARD -->
-            <section id="view-dashboard" class="view active">
+            <!-- Dashboard View -->
+            <div id="view-dashboard" class="view active">
                 <header>
-                    <h2>Top Recommended Sites</h2>
-                    <div class="header-stats" id="global-stats">
-                        <!-- Global stats injected here -->
+                    <div>
+                        <h2>Analytics Dashboard</h2>
+                        <p class="subtitle">Ranked viability of localized CH4 hotspots based on logistics and market ROI.</p>
                     </div>
                 </header>
 
-                <div class="sites-grid" id="sites-container">
+                <div id="global-stats" style="margin-bottom: 2rem;"></div>
+                <div id="sites-container" class="sites-grid">
                     <div class="empty-state">
                         <p>Click "Run Predictive Scan" to locate and analyze methane sites.</p>
                     </div>

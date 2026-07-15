@@ -55,6 +55,7 @@ async function fetchAndRenderData(currency, minLat = 48.0, maxLat = 54.0, minLon
         
     } catch (error) {
         console.error(error);
+        alert("Scan Failed: " + error.message + "\nMake sure the backend is online.");
         if (!isMapUpdate) {
             sitesContainer.innerHTML = `
                 <div class="empty-state" style="border-color: #ef4444; color: #ef4444;">
