@@ -83,6 +83,7 @@ def analyze_sites(
     ranked_sites = scorer.score_sites(raw_sites)
     
     results = []
+    fleet = FleetManager() # Fresh fleet for every scan
     
     # 2. Process Top 5 Sites
     for site in ranked_sites[:5]:
@@ -124,9 +125,16 @@ def analyze_sites(
         else:
             site_data["logistics"] = {
                 "feasible": False,
-                "reason": route.get("reason", "No mobile units available.")
+                "reason": route.get("reason", "No mobile units available.") if not dispatch else route.get("reason")
             }
+            if not dispatch:
+                site_data["logistics"]["reason"] = "No mobile units available."
             
         results.append(site_data)
         
-    return {"status": "success", "currency": currency, "sites": results}
+    # Generate the Heatmap Tile URL
+    heatmap_url = satellite_ingestor.get_ch4_heatmap_url(
+        min_lat=min_lat, max_lat=max_lat, min_lon=min_lon, max_lon=max_lon
+    )
+
+    return {"status": "success", "currency": currency, "heatmap_url": heatmap_url, "sites": results}
